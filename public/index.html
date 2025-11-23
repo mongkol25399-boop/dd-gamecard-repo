@@ -6,14 +6,24 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
+
     <title>DD GAMECARD</title>
+
+    <link rel="manifest" href="manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="DD Card" />
+    <link rel="apple-touch-icon" href="assets/icon.png" />
+
     <link
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
-    <link rel="manifest" href="manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
   </head>
   <body>
     <button id="emergency-btn" onclick="forceResetGame()">⚠️ Reset</button>
@@ -59,7 +69,7 @@
       </div>
 
       <div id="lobby-screen" class="screen hidden">
-        <h1>DD GAMECARD</h1>
+        <h1>เลือกชื่อตัวเอง</h1>
         <div id="lobby-list"></div>
         <div
           id="host-controls"
@@ -96,9 +106,8 @@
           <div id="turn-info-box">
             <div id="current-turn-name">ตาของ...</div>
           </div>
-
           <div id="deck-count-box">
-            <span id="deck-count">52 ใบ</span>
+            <span id="deck-count">ไพ่เหลือ: 52</span>
           </div>
         </div>
 
