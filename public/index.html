@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>DD GAMECARD</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+  </head>
+  <body>
+    <button id="emergency-btn" onclick="forceResetGame()">⚠️ Reset</button>
+    <button id="refresh-btn" onclick="window.location.reload()">
+      🔄 Refresh
+    </button>
+
+    <div id="disconnect-overlay" class="hidden">
+      <div style="text-align: center; color: white">
+        <h1 style="font-size: 3rem">📡</h1>
+        <h2>ขาดการเชื่อมต่อ!</h2>
+        <button class="btn-primary" onclick="window.location.reload()">
+          โหลดใหม่
+        </button>
+      </div>
+    </div>
+
+    <div id="app">
+      <div id="setup-screen" class="screen">
+        <h1 class="logo-text">🍺 DD GAMECARD</h1>
+        <div class="input-group">
+          <input
+            type="text"
+            id="new-player-name"
+            placeholder="พิมพ์ชื่อเพื่อน..."
+            onkeypress="handleEnter(event)"
+          />
+          <button onclick="addNameToList()" class="btn-add">+</button>
+        </div>
+        <div class="setup-list-container">
+          <p style="color: #aaa; font-size: 0.8rem; margin-bottom: 5px">
+            รายชื่อผู้เล่น
+          </p>
+          <div id="setup-list"></div>
+        </div>
+        <button
+          onclick="setupGame()"
+          class="btn-primary"
+          style="margin-top: auto"
+        >
+          ยืนยัน / สร้างห้อง
+        </button>
+      </div>
+
+      <div id="lobby-screen" class="screen hidden">
+        <h1>DD GAMECARD</h1>
+        <div id="lobby-list"></div>
+        <div
+          id="host-controls"
+          class="hidden"
+          style="width: 100%; display: flex; flex-direction: column; gap: 10px"
+        >
+          <p style="color: #aaa; font-size: 0.9rem; margin-top: 5px">
+            รอเพื่อนเลือกครบทุกคน...
+          </p>
+          <button
+            id="start-btn"
+            onclick="startGame()"
+            class="btn-start"
+            disabled
+          >
+            เริ่มเกม
+          </button>
+          <button
+            onclick="goBackToSetup()"
+            class="btn-secondary"
+            style="border-color: #e17055; color: #e17055"
+          >
+            ⬅️ แก้ไขรายชื่อ / เพิ่มคน
+          </button>
+          <div id="kick-list" class="hidden">
+            <h3 style="font-size: 1rem; color: #aaa">จัดการคน (ลบชื่อ)</h3>
+            <div id="kick-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="game-screen" class="screen hidden game-layout">
+        <div id="top-bar">
+          <div id="turn-info-box">
+            <div id="current-turn-name">ตาของ...</div>
+          </div>
+
+          <div id="deck-count-box">
+            <span id="deck-count">52 ใบ</span>
+          </div>
+        </div>
+
+        <div id="card-area">
+          <div id="card-container">
+            <img id="main-card-img" src="assets/back.png" alt="Card" />
+            <div id="card-message" class="hidden"></div>
+          </div>
+        </div>
+
+        <div id="bottom-split">
+          <div id="player-list-container">
+            <div id="in-game-list"></div>
+          </div>
+          <div id="action-btn-container">
+            <button id="main-btn" onclick="handleMainAction()">รอ...</button>
+            <button
+              id="alt-btn"
+              onclick="requestMinigameMode()"
+              class="btn-secondary hidden"
+            >
+              🔄 เกม
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="overlay" class="hidden">
+        <div id="overlay-content">
+          <h2 id="overlay-title">หัวข้อ</h2>
+          <div id="overlay-body"></div>
+          <button id="overlay-close" onclick="closeOverlay()" class="hidden">
+            ปิด
+          </button>
+        </div>
+      </div>
+
+      <div id="bomb-overlay" class="hidden">
+        <div class="bomb-content">
+          <h1 style="font-size: 3rem; color: #ff7675">💣 ระเบิดเวลา!</h1>
+          <div id="bomb-status" style="font-size: 1.5rem; margin: 20px 0">
+            ระเบิดอยู่ที่...
+          </div>
+          <div id="bomb-icon">💣</div>
+          <button
+            id="pass-bomb-btn"
+            class="btn-primary hidden"
+            onclick="passBomb()"
+          >
+            โยนระเบิด! 💨
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <audio id="sound-draw" src="assets/draw.mp3"></audio>
+    <audio id="sound-alert" src="assets/alert.mp3"></audio>
+    <audio id="sound-win" src="assets/win.mp3"></audio>
+    <audio id="sound-click" src="assets/click.mp3"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+  </body>
+</html>
