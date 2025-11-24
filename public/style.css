@@ -1,4 +1,4 @@
-/* public/style.css - Ver 7.0 (Overflow Fix) */
+/* public/style.css - Ver 7.2 (Compact Home Fix) */
 
 /* Reset & Base */
 * {
@@ -27,15 +27,15 @@ body {
   position: relative;
 }
 
-/* Screen Container: บังคับเต็มจอ และเรียงบนลงล่าง */
+/* Screen Container */
 .screen {
   width: 100%;
   height: 100%;
-  padding: 15px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: hidden; /* ห้ามล้น */
+  overflow: hidden;
 }
 .hidden {
   display: none !important;
@@ -81,36 +81,51 @@ body {
   align-items: center;
 }
 
-/* --- 0. Landing Screen --- */
+/* --- 0. Landing Screen (แก้ใหม่: ดึงทุกอย่างเข้าหากัน) --- */
+#landing-screen {
+  justify-content: center; /* [แก้] จัดกึ่งกลางจอ ไม่กระจายแล้ว */
+  gap: 15px; /* [แก้] ระยะห่างระหว่างก้อนบนกับล่าง */
+  padding-top: 40px;
+  padding-bottom: 20px;
+}
+
 #landing-content {
-  flex: 1; /* กินพื้นที่กลาง */
+  flex: 0 1 auto; /* [แก้] ไม่ยืดเต็มพื้นที่ ให้ใช้พื้นที่เท่าที่จำเป็น */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
-  min-height: 0; /* สำคัญ! ให้หดได้ */
 }
+
 .landing-logo-text {
   font-weight: 900;
   line-height: 1;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   text-transform: uppercase;
   text-align: center;
 }
+
 .landing-icon {
   width: auto;
   height: auto;
   max-width: 80%;
-  max-height: 40vh; /* จำกัดความสูงรูปไม่ให้ดันปุ่ม */
+  max-height: 35vh; /* ขนาดคงเดิมตามที่ขอ */
   object-fit: contain;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  margin-top: 10px;
 }
+
 .landing-bottom {
   width: 100%;
-  flex-shrink: 0; /* ห้ามหด */
-  padding-bottom: 20px;
+  flex-shrink: 0;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* [แก้] ขยับขึ้นมาใกล้ๆ */
+  margin-top: 0;
 }
 
 /* --- 1. Setup Screen --- */
@@ -121,7 +136,7 @@ body {
 }
 .logo-text {
   text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-  margin: 10px 0 20px 0;
+  margin: 10px 0 15px 0;
   color: white;
   font-size: 1.8rem;
 }
@@ -129,7 +144,7 @@ body {
   display: flex;
   width: 100%;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   flex-shrink: 0;
 }
 #new-player-name {
@@ -150,23 +165,22 @@ body {
   border: none;
 }
 
-/* รายชื่อ (ตัวปัญหาที่ชอบล้น) */
 .setup-list-container {
-  flex: 1; /* กินพื้นที่ที่เหลือ */
+  flex: 1;
   width: 100%;
-  overflow-y: auto; /* ให้เลื่อนได้เฉพาะตรงนี้ */
+  overflow-y: auto;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 15px;
   padding: 10px;
-  margin-bottom: 15px;
-  min-height: 0; /* สำคัญ! ป้องกันทะลุจอ */
+  margin-bottom: 10px;
+  min-height: 0;
 }
 .setup-item {
   display: flex;
   justify-content: space-between;
-  padding: 12px;
+  padding: 10px;
   background: #2d3436;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   border-radius: 8px;
   border: 1px solid #444;
 }
@@ -178,9 +192,7 @@ body {
   color: white;
   border: none;
 }
-
 .btn-confirm {
-  flex-shrink: 0; /* ห้ามหด */
   width: 100%;
   padding: 15px;
   border-radius: 50px;
@@ -189,7 +201,8 @@ body {
   color: white;
   border: none;
   cursor: pointer;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
+  flex-shrink: 0;
 }
 
 /* --- 2. Lobby --- */
@@ -253,7 +266,7 @@ body {
   overflow: hidden;
 }
 #current-turn-name {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #fdcb6e;
   font-weight: bold;
   background: rgba(255, 255, 255, 0.1);
@@ -296,7 +309,7 @@ body {
   align-items: center;
 }
 #main-card-img {
-  max-width: 95%;
+  max-width: 90%;
   max-height: 100%;
   width: auto;
   height: auto;
@@ -375,7 +388,7 @@ body {
   color: white;
 }
 
-/* Buttons & Overlays (คงเดิม) */
+/* Buttons & Overlays */
 button {
   border: none;
   cursor: pointer;
