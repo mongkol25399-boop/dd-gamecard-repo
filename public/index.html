@@ -6,14 +6,22 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
+
     <title>DD GAMECARD</title>
+
+    <link rel="manifest" href="manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="apple-touch-icon" href="assets/icon.png" />
+
     <link
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;700;900&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
-    <link rel="manifest" href="manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
   </head>
   <body>
     <button id="emergency-btn" onclick="forceResetGame()">⚠️ Reset</button>
@@ -25,6 +33,8 @@
       <div style="text-align: center; color: white">
         <h1 style="font-size: 3rem">📡</h1>
         <h2>ขาดการเชื่อมต่อ!</h2>
+        <p>กรุณารีเฟรชหน้าจอ</p>
+        <br />
         <button class="btn-primary" onclick="window.location.reload()">
           โหลดใหม่
         </button>
@@ -54,12 +64,14 @@
               >GAMECARD</span
             >
           </h1>
+
           <img
             src="assets/back.png"
             class="landing-icon"
             style="box-shadow: 0 0 40px rgba(253, 203, 110, 0.3)"
           />
         </div>
+
         <div class="landing-bottom">
           <div id="create-room-area">
             <button
@@ -86,6 +98,7 @@
               (กดปุ่มนี้เพื่อเป็น Host)
             </p>
           </div>
+
           <div id="join-room-area" class="hidden">
             <p
               style="
@@ -121,6 +134,7 @@
 
       <div id="setup-screen" class="screen hidden">
         <h1 class="logo-text">🍺 ตั้งค่าวงเหล้า</h1>
+
         <div class="input-group">
           <input
             type="text"
@@ -130,13 +144,19 @@
           />
           <button onclick="addNameToList()" class="btn-add">+</button>
         </div>
+
         <div class="setup-list-container">
           <p style="color: #aaa; font-size: 0.8rem; margin-bottom: 5px">
             รายชื่อผู้เล่น
           </p>
           <div id="setup-list"></div>
         </div>
-        <button onclick="setupGame()" class="btn-confirm">
+
+        <button
+          onclick="setupGame()"
+          class="btn-primary"
+          style="margin-top: auto"
+        >
           ยืนยัน / สร้างห้อง
         </button>
         <button
@@ -152,22 +172,22 @@
         <h1>เลือกชื่อตัวเอง</h1>
         <div id="lobby-list"></div>
 
-        <div style="width: 100%; margin-bottom: 10px">
+        <div
+          id="host-controls"
+          class="hidden"
+          style="width: 100%; display: flex; flex-direction: column; gap: 10px"
+        >
+          <p style="color: #aaa; font-size: 0.9rem; margin-top: 5px">
+            รอเพื่อนเลือกครบทุกคน...
+          </p>
           <button
             id="start-btn"
             onclick="startGame()"
             class="btn-start"
             disabled
           >
-            รอเพื่อนพร้อม...
+            เริ่มเกม
           </button>
-        </div>
-
-        <div
-          id="host-controls"
-          class="hidden"
-          style="width: 100%; display: flex; flex-direction: column; gap: 10px"
-        >
           <button
             onclick="goBackToSetup()"
             class="btn-secondary"
@@ -175,6 +195,7 @@
           >
             ⬅️ แก้ไขรายชื่อ / เพิ่มคน
           </button>
+
           <div id="kick-list" class="hidden">
             <h3 style="font-size: 1rem; color: #aaa">จัดการคน (ลบชื่อ)</h3>
             <div id="kick-container"></div>
@@ -191,12 +212,14 @@
             <span id="deck-count">52 ใบ</span>
           </div>
         </div>
+
         <div id="card-area">
           <div id="card-container">
             <img id="main-card-img" src="assets/back.png" alt="Card" />
             <div id="card-message" class="hidden"></div>
           </div>
         </div>
+
         <div id="bottom-split">
           <div id="player-list-container">
             <div id="in-game-list"></div>
