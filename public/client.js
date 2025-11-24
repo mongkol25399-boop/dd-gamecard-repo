@@ -1,10 +1,12 @@
 const socket = io();
 
+// --- Variables ---
 let myState = { index: -1, name: "", isHost: false };
 let gameState = { turnIndex: 0, players: [] };
 let setupNames = [];
 let currentCardAction = "draw";
 
+// --- Elements ---
 const screens = {
   setup: document.getElementById("setup-screen"),
   lobby: document.getElementById("lobby-screen"),
@@ -17,6 +19,7 @@ const cardImg = document.getElementById("main-card-img");
 const cardMsg = document.getElementById("card-message");
 const deckCount = document.getElementById("deck-count");
 
+// --- Sounds ---
 function playSound(id) {
   const audio = document.getElementById(id);
   if (audio) {
@@ -24,10 +27,16 @@ function playSound(id) {
     audio.play().catch(() => {});
   }
 }
+
+// --- Navigation ---
 function switchScreen(name) {
   Object.values(screens).forEach((s) => s.classList.add("hidden"));
   screens[name].classList.remove("hidden");
 }
+
+// ==========================================
+// 1. Socket Listeners
+// ==========================================
 
 socket.on("connect", () => {
   console.log("Connected!");
@@ -42,15 +51,14 @@ socket.on("roomStatus", (data) => {
   const joinArea = document.getElementById("join-room-area");
   const hostNameDisplay = document.getElementById("host-name-display");
 
-  // แสดงผลเฉพาะตอนอยู่หน้าแรก
-  if (!screens.landing.classList.contains("hidden")) {
+  if (screens.landing && !screens.landing.classList.contains("hidden")) {
     if (data.roomHostName) {
-      createArea.classList.add("hidden");
-      joinArea.classList.remove("hidden");
-      hostNameDisplay.innerText = data.roomHostName;
+      if (createArea) createArea.classList.add("hidden");
+      if (joinArea) joinArea.classList.remove("hidden");
+      if (hostNameDisplay) hostNameDisplay.innerText = data.roomHostName;
     } else {
-      createArea.classList.remove("hidden");
-      joinArea.classList.add("hidden");
+      if (createArea) createArea.classList.remove("hidden");
+      if (joinArea) joinArea.classList.add("hidden");
     }
   }
 });
@@ -81,19 +89,20 @@ socket.on("updateLobby", (data) => {
     }
     updateTurnUI();
   } else if (data.players.length > 0) {
-    // [แก้ใหม่] จะเด้งไป Lobby ก็ต่อเมื่อเรามีตัวตนแล้ว (myState.index != -1) หรือเป็น Host
-    // ถ้าเป็นคนนอกที่เพิ่งเข้าลิงก์มา ให้รออยู่ที่ Landing Screen
+    // ถ้าเรามีตัวตนแล้ว หรือเป็น Host ให้ไป Lobby
     if (myState.index !== -1 || myState.isHost) {
       switchScreen("lobby");
     }
 
     if (data.players[0].id === socket.id) {
       myState.isHost = true;
-      document.getElementById("host-controls").classList.remove("hidden");
+      if (document.getElementById("host-controls"))
+        document.getElementById("host-controls").classList.remove("hidden");
       renderKickList();
     } else {
       myState.isHost = false;
-      document.getElementById("host-controls").classList.add("hidden");
+      if (document.getElementById("host-controls"))
+        document.getElementById("host-controls").classList.add("hidden");
     }
 
     const allReady =
@@ -110,7 +119,6 @@ socket.on("updateLobby", (data) => {
       startBtn.onclick = window.startGame;
     }
   } else {
-    // ถ้าไม่มีผู้เล่นเลย (ห้องแตก) ให้กลับไปหน้า Setup หรือ Landing
     if (myState.isHost) switchScreen("setup");
     else switchScreen("landing");
   }
@@ -123,44 +131,94 @@ socket.on("gameStarted", (data) => {
   updateTurnUI();
   playSound("sound-win");
 });
+
 socket.on("restoreTurn", (data) => {
-  displayCard(data);
-});
+  displayCard(data, false);
+}); // false = ไม่ต้องหมุน (แค่โชว์)
+
 socket.on("nextTurn", (data) => {
   gameState.turnIndex = data.turnIndex;
   closeOverlay();
+  // Reset Card Back
   if (cardImg) {
     cardImg.style.transform = "rotateY(0deg)";
     cardImg.src = "assets/back.png";
   }
   updateTurnUI();
 });
+
 socket.on("cardResult", (data) => {
-  displayCard(data);
+  displayCard(data, true); // true = หมุนไพ่
   handleCardEffect(data);
 });
+
+// [ฟังก์ชันแสดงไพ่ - แก้ไขใหม่]
+function displayCard(data, animate = true) {
+  if (animate && cardImg) {
+    // 1. หมุนปิด (90 deg)
+    cardImg.style.transform = "rotateY(90deg)";
+
+    // 2. รอ 200ms แล้วเปลี่ยนรูป + หมุนเปิด (0 deg)
+    setTimeout(() => {
+      cardImg.src = `assets/${data.cardValue}.png`; // เช็คชื่อไฟล์ตรงนี้ (1.png, 2.png...)
+      cardImg.style.transform = "rotateY(0deg)";
+    }, 200);
+    playSound("sound-draw");
+  } else if (cardImg) {
+    // กรณี Restore (คนหลุดกลับมา) ไม่ต้องหมุน
+    cardImg.src = `assets/${data.cardValue}.png`;
+    cardImg.style.transform = "rotateY(0deg)";
+  }
+
+  if (deckCount) deckCount.innerText = `ไพ่เหลือ: ${data.remainingCards}`;
+  renderInGameList(data.statusHolders);
+  if (cardMsg) cardMsg.classList.add("hidden");
+
+  if (myState.index === data.drawerIndex) {
+    updateMainBtnAsNext();
+    if (data.cardValue === 7 || data.cardValue === 10)
+      altBtn.classList.remove("hidden");
+    else altBtn.classList.add("hidden");
+  } else {
+    updateMainBtnAsWait(data.drawerName);
+    altBtn.classList.add("hidden");
+  }
+}
+
 socket.on("showPunishment", (data) => {
   let html = "";
   const iAmVictim = data.victims.names.includes(myState.name);
   const isDrawer = gameState.turnIndex === myState.index;
   const isGroupBadLuck =
     data.victims.names.length > 1 && data.victims.isBuddyEffect;
+
   let title = "บทลงโทษ";
   let msgColor = "white";
   let actionText = "ดื่มซะ! 🍺";
+
   if (data.cause.includes("แป้ง")) {
     actionText = "ทาแป้งซะ! 🤡";
     msgColor = "#fab1a0";
   }
   if (isGroupBadLuck) title = "💀 ซวยหมู่! (แก๊งบัดดี้)";
+
   let btnHtml = `<button class="btn-primary" style="margin-top:20px;" onclick="closeOverlay()">ปิด</button>`;
   if (isDrawer)
     btnHtml = `<button class="btn-primary" style="margin-top:20px; background:#00b894;" onclick="endTurnAndClose()">✅ เรียบร้อย / จบเทิร์น</button>`;
-  html = `<h1 style="color:#ff7675; font-size:2.5rem;">${title}</h1><h3 style="color:#aaa; margin:10px 0;">${
-    data.cause
-  }</h3><div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px;"><h2 style="color:#ffeaa7;">รายชื่อผู้โชคร้าย</h2><p style="font-size:1.2rem; line-height:1.5;">${data.victims.names.join(
-    "<br>"
-  )}</p></div><h1 style="font-size:3rem; margin-top:15px; color:${msgColor};">${actionText}</h1>${btnHtml}`;
+
+  html = `
+        <h1 style="color:#ff7675; font-size:2.5rem;">${title}</h1>
+        <h3 style="color:#aaa; margin:10px 0;">${data.cause}</h3>
+        <div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px;">
+            <h2 style="color:#ffeaa7;">รายชื่อผู้โชคร้าย</h2>
+            <p style="font-size:1.2rem; line-height:1.5;">${data.victims.names.join(
+              "<br>"
+            )}</p>
+        </div>
+        <h1 style="font-size:3rem; margin-top:15px; color:${msgColor};">${actionText}</h1>
+        ${btnHtml}
+    `;
+
   if (iAmVictim) {
     document.body.classList.add("alert-mode");
     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
@@ -169,6 +227,7 @@ socket.on("showPunishment", (data) => {
   showOverlay("Alert", html);
   setTimeout(() => document.body.classList.remove("alert-mode"), 3000);
 });
+
 socket.on("minigameSelected", (data) => {
   let html = `<h1 style="color:#00b894; font-size:2rem;">🎮 ${data.gameName}</h1><p style="font-size:1.1rem; margin:15px 0;">เล่นกันเองในวง... ใครแพ้?</p>`;
   showOverlay("Minigame", html);
@@ -176,20 +235,24 @@ socket.on("minigameSelected", (data) => {
     updateMainBtn("เลือกคนแพ้", true, "pick_loser");
   }
 });
+
 socket.on("duelStarted", (data) => {
   closeOverlay();
   let html = `<h1 style="color:#fab1a0;">⚔️ ดวลเดือด!</h1><h2 style="font-size:2rem; margin:10px 0;">${data.challenger}<br>VS<br>${data.target}</h2><p>แข่งมินิเกมกันเดี๋ยวนี้!</p>`;
   if (gameState.turnIndex === myState.index) {
-    html += `<hr style="border-color:#555; margin:15px 0;"><p>ผลเป็นยังไง?</p><button class="btn-primary" style="background:#00b894; margin-bottom:10px;" onclick="socket.emit('resolveDuel', {winnerIndex: myState.index, loserIndex: ${gameState.players.findIndex(
-      (p) => p.name === data.target
-    )}})">😎 ฉันชนะ!</button><button class="btn-primary" style="background:#d63031;" onclick="socket.emit('resolveDuel', {winnerIndex: ${gameState.players.findIndex(
-      (p) => p.name === data.target
-    )}, loserIndex: myState.index})">😭 ฉันแพ้...</button>`;
+    html += `<hr style="border-color:#555; margin:15px 0;"><p>ผลเป็นยังไง?</p>
+            <button class="btn-primary" style="background:#00b894; margin-bottom:10px;" onclick="socket.emit('resolveDuel', {winnerIndex: myState.index, loserIndex: ${gameState.players.findIndex(
+              (p) => p.name === data.target
+            )}})">😎 ฉันชนะ!</button>
+            <button class="btn-primary" style="background:#d63031;" onclick="socket.emit('resolveDuel', {winnerIndex: ${gameState.players.findIndex(
+              (p) => p.name === data.target
+            )}, loserIndex: myState.index})">😭 ฉันแพ้...</button>`;
   } else {
     html += `<p style="color:#aaa;">(รอเพื่อนแข่งกัน...)</p>`;
   }
   showOverlay("Duel", html);
 });
+
 socket.on("duelResult", (data) => {
   closeOverlay();
   let emotion = "";
@@ -209,6 +272,7 @@ socket.on("duelResult", (data) => {
   setTimeout(closeOverlay, 3000);
   renderInGameList(data.statusHolders);
 });
+
 socket.on("bombStarted", (data) => {
   document.getElementById("bomb-overlay").classList.remove("hidden");
   updateBombUI(data.holderIndex);
@@ -237,6 +301,7 @@ function updateBombUI(holderIndex) {
 window.passBomb = () => {
   socket.emit("passBomb");
 };
+
 socket.on("backToSetup", (d) => {
   localStorage.removeItem("myPlayerIndex");
   closeOverlay();
@@ -256,7 +321,7 @@ socket.on("resetAll", () => {
   location.reload();
 });
 
-// Functions
+// --- Functions ---
 function updateTurnUI() {
   if (myState.index === -1) {
     const foundIdx = gameState.players.findIndex((p) => p.id === socket.id);
@@ -264,9 +329,8 @@ function updateTurnUI() {
   }
   const currentPlayer = gameState.players[gameState.turnIndex];
   if (currentPlayer) {
-    document.getElementById(
-      "current-turn-name"
-    ).innerText = `ตาของ: ${currentPlayer.name}`;
+    const turnNameEl = document.getElementById("current-turn-name");
+    if (turnNameEl) turnNameEl.innerText = `ตาของ: ${currentPlayer.name}`;
     if (gameState.turnIndex === myState.index) {
       currentCardAction = "draw";
       updateMainBtn("จั่วไพ่", true);
@@ -275,6 +339,7 @@ function updateTurnUI() {
     }
   }
 }
+
 function updateMainBtn(text, active, action) {
   if (!mainBtn) return;
   mainBtn.innerText = text;
@@ -287,34 +352,13 @@ function updateMainBtn(text, active, action) {
     mainBtn.style.pointerEvents = "none";
   }
 }
-function displayCard(data) {
-  if (cardImg) {
-    cardImg.style.transform = "rotateY(90deg)";
-    setTimeout(() => {
-      cardImg.src = `assets/${cardValue}.png`;
-      cardImg.style.transform = "rotateY(0deg)";
-    }, 150);
-  }
-  playSound("sound-draw");
-  if (deckCount) deckCount.innerText = `ไพ่เหลือ: ${data.remainingCards}`;
-  renderInGameList(data.statusHolders);
-  if (cardMsg) cardMsg.classList.add("hidden");
-  if (myState.index === data.drawerIndex) {
-    updateMainBtnAsNext();
-    if (data.cardValue === 7 || data.cardValue === 10)
-      altBtn.classList.remove("hidden");
-    else altBtn.classList.add("hidden");
-  } else {
-    updateMainBtnAsWait(data.drawerName);
-    altBtn.classList.add("hidden");
-  }
-}
 function updateMainBtnAsNext() {
   updateMainBtn("จบเทิร์น\nถัดไป", true, "next");
 }
 function updateMainBtnAsWait(name) {
   updateMainBtn(`ตาของ\n${name}`, false, "");
 }
+
 function handleEnter(e) {
   if (e.key === "Enter") addNameToList();
 }
@@ -332,17 +376,20 @@ function removeName(i) {
 }
 function renderSetupList() {
   const l = document.getElementById("setup-list");
-  l.innerHTML = "";
-  setupNames.forEach(
-    (n, i) =>
-      (l.innerHTML += `<div class="setup-item"><span>${
-        i + 1
-      }. ${n}</span><button class="btn-del" onclick="removeName(${i})">X</button></div>`)
-  );
+  if (l) {
+    l.innerHTML = "";
+    setupNames.forEach(
+      (n, i) =>
+        (l.innerHTML += `<div class="setup-item"><span>${
+          i + 1
+        }. ${n}</span><button class="btn-del" onclick="removeName(${i})">X</button></div>`)
+    );
+  }
 }
-window.setupGame = () => {
+
+window.setupGame = function () {
   const input = document.getElementById("new-player-name");
-  if (input.value.trim() !== "") addNameToList();
+  if (input && input.value.trim() !== "") addNameToList();
   if (setupNames.length > 0) {
     localStorage.removeItem("myPlayerIndex");
     socket.emit("createRoom", setupNames);
@@ -351,8 +398,9 @@ window.setupGame = () => {
     alert("เพิ่มรายชื่อเพื่อนก่อนครับ");
   }
 };
+
 window.goToSetup = () => switchScreen("setup");
-window.joinRoom = () => switchScreen("lobby"); // กดปุ่มนี้ถึงจะเข้า Lobby
+window.joinRoom = () => switchScreen("lobby");
 window.backToLanding = () => switchScreen("landing");
 window.startGame = () => {
   if (socket.connected) {
@@ -361,30 +409,33 @@ window.startGame = () => {
     alert("Connection Lost!");
   }
 };
+
 function renderLobby() {
   const list = document.getElementById("lobby-list");
-  list.innerHTML = "";
-  gameState.players.forEach((p, idx) => {
-    const btn = document.createElement("button");
-    btn.className = `lobby-btn ${p.ready ? "ready" : ""}`;
-    btn.style.borderLeft = `5px solid ${p.color}`;
-    const isMe = myState.index === idx;
-    btn.innerHTML = `<span>${p.name} ${isMe ? "(คุณ)" : ""}</span> <span>${
-      p.ready ? "✅ พร้อม" : "(ว่าง)"
-    }</span>`;
-    if (isMe) btn.classList.add("ready");
-    if (!p.ready && myState.index === -1) {
-      btn.onclick = () => {
-        myState.index = idx;
-        myState.name = p.name;
-        localStorage.setItem("myPlayerIndex", idx);
-        socket.emit("selectPlayer", idx);
-      };
-    } else {
-      btn.disabled = true;
-    }
-    list.appendChild(btn);
-  });
+  if (list) {
+    list.innerHTML = "";
+    gameState.players.forEach((p, idx) => {
+      const btn = document.createElement("button");
+      btn.className = `lobby-btn ${p.ready ? "ready" : ""}`;
+      btn.style.borderLeft = `5px solid ${p.color}`;
+      const isMe = myState.index === idx;
+      btn.innerHTML = `<span>${p.name} ${isMe ? "(คุณ)" : ""}</span> <span>${
+        p.ready ? "✅ พร้อม" : "(ว่าง)"
+      }</span>`;
+      if (isMe) btn.classList.add("ready");
+      if (!p.ready && myState.index === -1) {
+        btn.onclick = () => {
+          myState.index = idx;
+          myState.name = p.name;
+          localStorage.setItem("myPlayerIndex", idx);
+          socket.emit("selectPlayer", idx);
+        };
+      } else {
+        btn.disabled = true;
+      }
+      list.appendChild(btn);
+    });
+  }
 }
 function renderKickList() {
   const container = document.getElementById("kick-container");
@@ -426,6 +477,7 @@ function renderInGameList(statusHolders) {
     list.appendChild(row);
   });
 }
+
 function handleMainAction() {
   playSound("sound-click");
   if (currentCardAction === "draw") socket.emit("drawCard");
