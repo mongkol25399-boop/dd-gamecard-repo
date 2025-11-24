@@ -55,30 +55,23 @@ socket.on("roomStatus", (data) => {
 
 socket.on("updateLobby", (data) => {
   gameState.players = data.players;
-  const savedIndex = localStorage.getItem("myPlayerIndex");
-  if (savedIndex !== null && myState.index === -1) {
-    const idx = parseInt(savedIndex);
-    if (gameState.players[idx]) {
-      myState.index = idx;
-      myState.name = gameState.players[idx].name;
-      socket.emit("selectPlayer", idx);
-    }
+
+  // [FIXED] Check ID Everytime
+  const myIdxBySocket = data.players.findIndex((p) => p.id === socket.id);
+  if (myIdxBySocket !== -1) {
+    myState.index = myIdxBySocket;
+    myState.name = data.players[myIdxBySocket].name;
+    localStorage.setItem("myPlayerIndex", myIdxBySocket);
   }
+
   renderLobby();
   renderInGameList();
 
   if (data.gameStarted) {
     switchScreen("game");
-    const myIdx = data.players.findIndex((p) => p.id === socket.id);
-    if (myIdx !== -1) {
-      myState.index = myIdx;
-      localStorage.setItem("myPlayerIndex", myIdx);
-    }
     updateTurnUI();
   } else if (data.players.length > 0) {
     switchScreen("lobby");
-
-    // Host Controls (Kick/Edit)
     if (data.players[0].id === socket.id) {
       myState.isHost = true;
       document.getElementById("host-controls").classList.remove("hidden");
@@ -88,22 +81,18 @@ socket.on("updateLobby", (data) => {
       document.getElementById("host-controls").classList.add("hidden");
     }
 
-    // Start Button Logic (แยกออกมาแล้ว)
     const allReady =
       data.players.length > 0 && data.players.every((p) => p.ready);
     const startBtn = document.getElementById("start-btn");
     if (startBtn) {
       startBtn.disabled = !allReady;
-      if (allReady) {
-        startBtn.className = "btn-start active";
-        startBtn.innerText = "เริ่มเกมเลย! 🚀";
-        startBtn.onclick = window.startGame; // ใครกดก็ได้
-      } else {
-        startBtn.className = "btn-start";
-        startBtn.innerText = `รอเพื่อนพร้อม... (${
-          data.players.filter((p) => p.ready).length
-        }/${data.players.length})`;
-      }
+      startBtn.className = allReady ? "btn-start active" : "btn-start";
+      startBtn.innerText = allReady
+        ? "เริ่มเกมเลย!"
+        : `รอเพื่อนพร้อม... (${data.players.filter((p) => p.ready).length}/${
+            data.players.length
+          })`;
+      startBtn.onclick = window.startGame;
     }
   } else {
     switchScreen("setup");
@@ -113,10 +102,16 @@ socket.on("updateLobby", (data) => {
 socket.on("gameStarted", (data) => {
   gameState.turnIndex = data.turnIndex;
   if (deckCount) deckCount.innerText = `ไพ่เหลือ: ${data.remainingCards}`;
+
+  // [FIXED] Force Check ID Again on Start
+  const myIdx = gameState.players.findIndex((p) => p.id === socket.id);
+  if (myIdx !== -1) myState.index = myIdx;
+
   switchScreen("game");
   updateTurnUI();
   playSound("sound-win");
 });
+
 socket.on("restoreTurn", (data) => {
   displayCard(data);
 });
@@ -614,6 +609,10 @@ window.forceResetGame = () => {
 window.confirmReset = () => {
   closeOverlay();
   socket.emit("forceReset");
+};
+window.toggleSettings = () => {
+  if (myState.isHost && confirm("กลับไปหน้าตั้งค่า? (เกมจะหยุด)"))
+    switchScreen("lobby");
 };
 function flipCardAnimation(cardValue) {
   if (cardImg) {

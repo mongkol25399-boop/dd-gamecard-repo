@@ -1,6 +1,6 @@
-/* public/style.css - Ver 7.2 (Compact Home Fix) */
+/* public/style.css - Ver 6.0 (Final Layout Fix) */
 
-/* Reset & Base */
+/* Reset */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -14,7 +14,7 @@ body {
   background-image: radial-gradient(circle at center, #2d3436 0%, #000000 100%);
   color: white;
   width: 100vw;
-  height: 100dvh;
+  height: 100dvh; /* เต็มจอ */
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -46,7 +46,7 @@ body {
   position: fixed;
   top: 10px;
   left: 10px;
-  padding: 5px 10px;
+  padding: 4px 8px;
   font-size: 0.7rem;
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid #d63031;
@@ -59,7 +59,7 @@ body {
   position: fixed;
   top: 10px;
   right: 10px;
-  padding: 5px 10px;
+  padding: 4px 8px;
   font-size: 0.7rem;
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid #0984e3;
@@ -81,23 +81,21 @@ body {
   align-items: center;
 }
 
-/* --- 0. Landing Screen (แก้ใหม่: ดึงทุกอย่างเข้าหากัน) --- */
+/* --- 0. Landing Screen --- */
 #landing-screen {
-  justify-content: center; /* [แก้] จัดกึ่งกลางจอ ไม่กระจายแล้ว */
-  gap: 15px; /* [แก้] ระยะห่างระหว่างก้อนบนกับล่าง */
+  justify-content: center;
+  gap: 15px;
   padding-top: 40px;
   padding-bottom: 20px;
 }
-
 #landing-content {
-  flex: 0 1 auto; /* [แก้] ไม่ยืดเต็มพื้นที่ ให้ใช้พื้นที่เท่าที่จำเป็น */
+  flex: 0 1 auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
 }
-
 .landing-logo-text {
   font-weight: 900;
   line-height: 1;
@@ -105,18 +103,16 @@ body {
   text-transform: uppercase;
   text-align: center;
 }
-
 .landing-icon {
   width: auto;
   height: auto;
   max-width: 80%;
-  max-height: 35vh; /* ขนาดคงเดิมตามที่ขอ */
+  max-height: 35vh;
   object-fit: contain;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   margin-top: 10px;
 }
-
 .landing-bottom {
   width: 100%;
   flex-shrink: 0;
@@ -124,21 +120,17 @@ body {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  /* [แก้] ขยับขึ้นมาใกล้ๆ */
   margin-top: 0;
 }
 
-/* --- 1. Setup Screen --- */
-.setup-header {
-  flex-shrink: 0;
-  text-align: center;
-  width: 100%;
-}
+/* --- 1. Setup & Lobby (แก้ให้ไม่ล้น) --- */
 .logo-text {
   text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-  margin: 10px 0 15px 0;
+  margin-bottom: 15px;
+  margin-top: 30px;
   color: white;
   font-size: 1.8rem;
+  flex-shrink: 0;
 }
 .input-group {
   display: flex;
@@ -149,12 +141,11 @@ body {
 }
 #new-player-name {
   flex-grow: 1;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 8px;
   background: #222;
   color: white;
   border: 1px solid #444;
-  font-size: 1.1rem;
 }
 .btn-add {
   width: 50px;
@@ -162,18 +153,19 @@ body {
   border-radius: 8px;
   color: white;
   font-size: 1.5rem;
-  border: none;
 }
 
-.setup-list-container {
-  flex: 1;
+/* กล่องรายชื่อ (ให้ยืดหดได้) */
+.setup-list-container,
+#lobby-list {
+  flex: 1; /* กินพื้นที่ที่เหลือ */
   width: 100%;
-  overflow-y: auto;
+  overflow-y: auto; /* ให้เลื่อนได้ */
   background: rgba(255, 255, 255, 0.03);
   border-radius: 15px;
   padding: 10px;
   margin-bottom: 10px;
-  min-height: 0;
+  min-height: 0; /* สำคัญ! กันทะลุ */
 }
 .setup-item {
   display: flex;
@@ -182,41 +174,19 @@ body {
   background: #2d3436;
   margin-bottom: 5px;
   border-radius: 8px;
-  border: 1px solid #444;
 }
 .btn-del {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   background: #d63031;
   color: white;
-  border: none;
-}
-.btn-confirm {
-  width: 100%;
-  padding: 15px;
-  border-radius: 50px;
-  font-size: 1.2rem;
-  background: #0984e3;
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin-bottom: 5px;
-  flex-shrink: 0;
 }
 
-/* --- 2. Lobby --- */
-#lobby-list {
-  flex: 1;
-  width: 100%;
-  overflow-y: auto;
-  margin: 10px 0;
-  min-height: 0;
-}
 .lobby-btn {
   width: 100%;
   padding: 15px;
-  margin: 8px 0;
+  margin: 5px 0;
   background: #2d3436;
   color: #ccc;
   border-radius: 10px;
@@ -228,30 +198,39 @@ body {
   border-color: #00b894;
   color: #00b894;
 }
-#host-controls {
+
+/* ปุ่มด้านล่าง Lobby (ห้ามหด) */
+#host-controls,
+.btn-confirm,
+.btn-secondary {
   flex-shrink: 0;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-bottom: 10px;
+  margin-top: 5px;
 }
 #kick-list {
-  max-height: 100px;
+  max-height: 80px;
   overflow-y: auto;
   border-top: 1px solid #444;
   padding-top: 5px;
   margin-top: 5px;
 }
 
-/* --- 3. Game Layout --- */
+/* --- 3. Game Layout (จัดให้เป๊ะ) --- */
 .game-layout {
+  display: flex !important;
+  flex-direction: column !important;
   justify-content: space-between;
-  padding-top: 45px;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  padding-top: 40px;
   padding-bottom: 10px;
+  overflow: hidden;
 }
+
+/* Top Bar */
 #top-bar {
-  flex: 0 0 45px;
+  flex: 0 0 40px;
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -270,8 +249,8 @@ body {
   color: #fdcb6e;
   font-weight: bold;
   background: rgba(255, 255, 255, 0.1);
-  padding: 6px 12px;
-  border-radius: 20px;
+  padding: 5px 10px;
+  border-radius: 15px;
   border: 1px solid #444;
   white-space: nowrap;
 }
@@ -279,17 +258,18 @@ body {
   flex-shrink: 0;
 }
 #deck-count {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #aaa;
   background: #222;
-  padding: 6px 12px;
-  border-radius: 20px;
+  padding: 5px 10px;
+  border-radius: 15px;
   border: 1px solid #444;
 }
 #settings-btn {
   display: none;
 }
 
+/* Card Area (กลาง) */
 #card-area {
   flex: 1;
   width: 100%;
@@ -297,9 +277,9 @@ body {
   justify-content: center;
   align-items: center;
   perspective: 1000px;
-  overflow: visible;
-  padding: 5px 0;
+  overflow: hidden;
   min-height: 0;
+  padding: 5px 0;
 }
 #card-container {
   width: 100%;
@@ -309,13 +289,13 @@ body {
   align-items: center;
 }
 #main-card-img {
-  max-width: 90%;
-  max-height: 100%;
+  max-width: 95%;
+  max-height: 100%; /* เต็มที่ */
   width: auto;
   height: auto;
   object-fit: contain;
   border-radius: 15px;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.9);
   transition: transform 0.6s;
   transform-style: preserve-3d;
   display: block;
@@ -324,12 +304,15 @@ body {
   transform: rotateY(180deg);
 }
 
+/* Bottom Split (ล่าง) - ลดความสูงลงนิดนึงให้ไม่ล้น */
 #bottom-split {
-  flex: 0 0 160px;
+  flex: 0 0 22vh; /* ลดจาก 25vh */
+  min-height: 130px;
+  max-height: 180px;
   width: 100%;
   display: flex;
   flex-direction: row;
-  gap: 10px;
+  gap: 8px;
 }
 #player-list-container {
   flex: 2;
@@ -337,7 +320,7 @@ body {
   border-radius: 15px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow-y: auto;
-  padding: 8px;
+  padding: 5px;
   display: flex;
   flex-direction: column;
 }
@@ -345,14 +328,88 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
 }
+
+/* Buttons */
+button {
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s;
+  font-family: "Kanit";
+}
+button:active {
+  transform: scale(0.95);
+}
+.btn-primary {
+  background: #0984e3;
+  color: white;
+  padding: 12px;
+  border-radius: 40px;
+  font-size: 1.1rem;
+  width: 100%;
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #555;
+  color: #aaa;
+  font-size: 0.8rem;
+  padding: 8px;
+  border-radius: 15px;
+  width: 100%;
+}
+.btn-start {
+  background: #00b894;
+  color: white;
+  opacity: 0.5;
+  padding: 15px;
+  border-radius: 50px;
+  width: 100%;
+  font-size: 1.2rem;
+}
+.btn-start.active {
+  opacity: 1;
+  box-shadow: 0 0 15px #00b894;
+}
+
+#main-btn {
+  width: 100%;
+  flex: 1;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background: #2d3436;
+  color: #636e72;
+  pointer-events: none;
+  border: 2px solid #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: pre-line;
+}
+#main-btn.my-turn {
+  background: linear-gradient(135deg, #e17055, #ff7675);
+  color: white;
+  box-shadow: 0 0 20px rgba(225, 112, 85, 0.5);
+  animation: pulse 1.5s infinite;
+}
+#alt-btn {
+  height: 40px;
+  font-size: 0.8rem;
+  background: #333;
+  border-radius: 10px;
+  border: 1px solid #555;
+  color: #aaa;
+}
+
+/* List Items */
 .player-row {
   display: flex;
   justify-content: space-between;
-  padding: 5px 0;
+  padding: 4px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 .player-row.current {
   color: #fdcb6e;
@@ -388,76 +445,7 @@ body {
   color: white;
 }
 
-/* Buttons & Overlays */
-button {
-  border: none;
-  cursor: pointer;
-  transition: transform 0.1s;
-  font-family: "Kanit";
-}
-button:active {
-  transform: scale(0.95);
-}
-.btn-primary {
-  background: #0984e3;
-  color: white;
-  padding: 15px;
-  border-radius: 50px;
-  font-size: 1.2rem;
-  width: 100%;
-}
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #555;
-  color: #aaa;
-  font-size: 0.9rem;
-  padding: 10px;
-  border-radius: 15px;
-  width: 100%;
-}
-.btn-start {
-  background: #00b894;
-  color: white;
-  opacity: 0.5;
-  padding: 15px;
-  border-radius: 50px;
-  width: 100%;
-  font-size: 1.2rem;
-}
-.btn-start.active {
-  opacity: 1;
-  box-shadow: 0 0 15px #00b894;
-}
-#main-btn {
-  width: 100%;
-  flex: 1;
-  border-radius: 15px;
-  font-size: 1.3rem;
-  font-weight: bold;
-  background: #2d3436;
-  color: #636e72;
-  pointer-events: none;
-  border: 2px solid #444;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  white-space: pre-line;
-}
-#main-btn.my-turn {
-  background: linear-gradient(135deg, #e17055, #ff7675);
-  color: white;
-  box-shadow: 0 0 20px rgba(225, 112, 85, 0.5);
-  animation: pulse 1.5s infinite;
-}
-#alt-btn {
-  height: 45px;
-  font-size: 0.8rem;
-  background: #333;
-  border-radius: 10px;
-  border: 1px solid #555;
-  color: #aaa;
-}
+/* Overlays */
 #overlay {
   position: fixed;
   top: 0;
@@ -488,17 +476,17 @@ button:active {
 }
 .game-choice-btn {
   width: 100%;
-  padding: 15px 5px;
+  padding: 10px 5px;
   background: #444;
   color: white;
   border-radius: 10px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   border: 1px solid #555;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60px;
+  min-height: 50px;
 }
 .game-choice-btn:active {
   background: #555;
