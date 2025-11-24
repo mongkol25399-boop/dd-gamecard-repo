@@ -6,10 +6,10 @@ let setupNames = [];
 let currentCardAction = "draw";
 
 const screens = {
-  landing: document.getElementById("landing-screen"),
   setup: document.getElementById("setup-screen"),
   lobby: document.getElementById("lobby-screen"),
   game: document.getElementById("game-screen"),
+  landing: document.getElementById("landing-screen"),
 };
 const mainBtn = document.getElementById("main-btn");
 const altBtn = document.getElementById("alt-btn");
@@ -29,32 +29,24 @@ function switchScreen(name) {
   screens[name].classList.remove("hidden");
 }
 
-// --- Socket Listeners ---
-
 socket.on("connect", () => {
   console.log("Connected!");
   document.getElementById("disconnect-overlay").classList.add("hidden");
 });
-
 socket.on("disconnect", () =>
   document.getElementById("disconnect-overlay").classList.remove("hidden")
 );
 
-// [ใหม่] รับสถานะห้อง (มีห้องหรือยัง?)
 socket.on("roomStatus", (data) => {
   const createArea = document.getElementById("create-room-area");
   const joinArea = document.getElementById("join-room-area");
   const hostNameDisplay = document.getElementById("host-name-display");
-
-  // ถ้ายังไม่ได้อยู่ในหน้า Lobby หรือ Game (คือเพิ่งเข้าแอป)
   if (screens.landing.classList.contains("hidden") === false) {
     if (data.roomHostName) {
-      // มีห้องแล้ว -> โชว์ปุ่ม Join
       createArea.classList.add("hidden");
       joinArea.classList.remove("hidden");
       hostNameDisplay.innerText = data.roomHostName;
     } else {
-      // ยังไม่มีห้อง -> โชว์ปุ่ม Create
       createArea.classList.remove("hidden");
       joinArea.classList.add("hidden");
     }
@@ -63,8 +55,6 @@ socket.on("roomStatus", (data) => {
 
 socket.on("updateLobby", (data) => {
   gameState.players = data.players;
-
-  // Auto Login
   const savedIndex = localStorage.getItem("myPlayerIndex");
   if (savedIndex !== null && myState.index === -1) {
     const idx = parseInt(savedIndex);
@@ -74,10 +64,8 @@ socket.on("updateLobby", (data) => {
       socket.emit("selectPlayer", idx);
     }
   }
-
   renderLobby();
   renderInGameList();
-
   if (data.gameStarted) {
     switchScreen("game");
     const myIdx = data.players.findIndex((p) => p.id === socket.id);
@@ -87,8 +75,7 @@ socket.on("updateLobby", (data) => {
     }
     updateTurnUI();
   } else if (data.players.length > 0) {
-    // ถ้าเรากด Join หรือ Create มาแล้ว ให้ไป Lobby
-    // (แต่ถ้ายังอยู่ Landing ก็จะยังไม่ไป จนกว่าจะกดปุ่ม Join)
+    // ถ้าอยู่หน้า Landing แล้วมีห้อง ให้คนกด Join
   }
 });
 
@@ -99,11 +86,9 @@ socket.on("gameStarted", (data) => {
   updateTurnUI();
   playSound("sound-win");
 });
-
 socket.on("restoreTurn", (data) => {
   displayCard(data);
 });
-
 socket.on("nextTurn", (data) => {
   gameState.turnIndex = data.turnIndex;
   closeOverlay();
@@ -113,116 +98,17 @@ socket.on("nextTurn", (data) => {
   }
   updateTurnUI();
 });
-
 socket.on("cardResult", (data) => {
   displayCard(data);
   handleCardEffect(data);
 });
-socket.on("showPunishment", (data) => {
-  let html = "";
-  const iAmVictim = data.victims.names.includes(myState.name);
-  const isDrawer = gameState.turnIndex === myState.index;
-  const isGroupBadLuck =
-    data.victims.names.length > 1 && data.victims.isBuddyEffect;
-  let title = "บทลงโทษ";
-  let msgColor = "white";
-  let actionText = "ดื่มซะ! 🍺";
-  if (data.cause.includes("แป้ง")) {
-    actionText = "ทาแป้งซะ! 🤡";
-    msgColor = "#fab1a0";
-  }
-  if (isGroupBadLuck) title = "💀 ซวยหมู่! (แก๊งบัดดี้)";
-  let btnHtml = `<button class="btn-primary" style="margin-top:20px;" onclick="closeOverlay()">ปิด</button>`;
-  if (isDrawer)
-    btnHtml = `<button class="btn-primary" style="margin-top:20px; background:#00b894;" onclick="endTurnAndClose()">✅ เรียบร้อย / จบเทิร์น</button>`;
-  html = `<h1 style="color:#ff7675; font-size:2.5rem;">${title}</h1><h3 style="color:#aaa; margin:10px 0;">${
-    data.cause
-  }</h3><div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px;"><h2 style="color:#ffeaa7;">รายชื่อผู้โชคร้าย</h2><p style="font-size:1.2rem; line-height:1.5;">${data.victims.names.join(
-    "<br>"
-  )}</p></div><h1 style="font-size:3rem; margin-top:15px; color:${msgColor};">${actionText}</h1>${btnHtml}`;
-  if (iAmVictim) {
-    document.body.classList.add("alert-mode");
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-    playSound("sound-alert");
-  }
-  showOverlay("Alert", html);
-  setTimeout(() => document.body.classList.remove("alert-mode"), 3000);
-});
-socket.on("minigameSelected", (data) => {
-  let html = `<h1 style="color:#00b894; font-size:2rem;">🎮 ${data.gameName}</h1><p style="font-size:1.1rem; margin:15px 0;">เล่นกันเองในวง... ใครแพ้?</p>`;
-  showOverlay("Minigame", html);
-  if (gameState.turnIndex === myState.index) {
-    updateMainBtn("เลือกคนแพ้", true, "pick_loser");
-  }
-});
-socket.on("duelStarted", (data) => {
-  closeOverlay();
-  let html = `<h1 style="color:#fab1a0;">⚔️ ดวลเดือด!</h1><h2 style="font-size:2rem; margin:10px 0;">${data.challenger}<br>VS<br>${data.target}</h2><p>แข่งมินิเกมกันเดี๋ยวนี้!</p>`;
-  if (gameState.turnIndex === myState.index) {
-    html += `<hr style="border-color:#555; margin:15px 0;"><p>ผลเป็นยังไง?</p><button class="btn-primary" style="background:#00b894; margin-bottom:10px;" onclick="socket.emit('resolveDuel', {winnerIndex: myState.index, loserIndex: ${gameState.players.findIndex(
-      (p) => p.name === data.target
-    )}})">😎 ฉันชนะ!</button><button class="btn-primary" style="background:#d63031;" onclick="socket.emit('resolveDuel', {winnerIndex: ${gameState.players.findIndex(
-      (p) => p.name === data.target
-    )}, loserIndex: myState.index})">😭 ฉันแพ้...</button>`;
-  } else {
-    html += `<p style="color:#aaa;">(รอเพื่อนแข่งกัน...)</p>`;
-  }
-  showOverlay("Duel", html);
-});
-socket.on("duelResult", (data) => {
-  closeOverlay();
-  let emotion = "";
-  if (data.winner === myState.name) {
-    emotion = "เย้! คุณชนะ 🎉";
-    playSound("sound-win");
-    fireConfetti();
-  } else if (data.loser === myState.name) {
-    emotion = "แง! คุณแพ้ (ยินดีต้อนรับสู่แก๊งบัดดี้) 😭";
-    document.body.classList.add("alert-mode");
-    setTimeout(() => document.body.classList.remove("alert-mode"), 2000);
-  } else {
-    emotion = `${data.winner} ชนะ!`;
-  }
-  let html = `<h1 style="color:#55efc4;">${emotion}</h1><p style="font-size:1.2rem;">${data.message}</p>`;
-  showOverlay("Result", html);
-  setTimeout(closeOverlay, 3000);
-  renderInGameList(data.statusHolders);
-});
-socket.on("bombStarted", (data) => {
-  document.getElementById("bomb-overlay").classList.remove("hidden");
-  updateBombUI(data.holderIndex);
-});
-socket.on("bombUpdate", (data) => {
-  updateBombUI(data.holderIndex);
-});
-socket.on("bombExploded", (data) => {
-  document.getElementById("bomb-overlay").classList.add("hidden");
-  playSound("sound-alert");
-});
-function updateBombUI(holderIndex) {
-  const holderName = gameState.players[holderIndex].name;
-  document.getElementById(
-    "bomb-status"
-  ).innerText = `ระเบิดอยู่ที่: ${holderName}`;
-  const btn = document.getElementById("pass-bomb-btn");
-  if (holderIndex === myState.index) {
-    document.body.classList.add("alert-mode");
-    btn.classList.remove("hidden");
-  } else {
-    document.body.classList.remove("alert-mode");
-    btn.classList.add("hidden");
-  }
-}
-window.passBomb = () => {
-  socket.emit("passBomb");
-};
 socket.on("backToSetup", (d) => {
   localStorage.removeItem("myPlayerIndex");
   closeOverlay();
   setupNames = d.names || [];
   renderSetupList();
   switchScreen("landing");
-}); // แก้ให้กลับไป Landing
+});
 socket.on("gameOver", () => {
   showOverlay("GAME OVER", "<h1>ไพ่หมด!</h1>");
   if (myState.isHost)
@@ -235,31 +121,37 @@ socket.on("resetAll", () => {
   location.reload();
 });
 
-// --- Navigation Functions ---
-window.goToSetup = () => {
-  switchScreen("setup");
-};
-window.joinRoom = () => {
-  switchScreen("lobby");
-};
-window.backToLanding = () => {
-  switchScreen("landing");
-};
-
-// --- Setup Functions ---
-window.submitSetup = function () {
-  const input = document.getElementById("new-player-name");
-  if (input.value.trim() !== "") addNameToList();
-  if (setupNames.length > 0) {
-    localStorage.removeItem("myPlayerIndex");
-    socket.emit("createRoom", setupNames); // ใช้คำสั่ง createRoom
-    switchScreen("lobby");
-  } else {
-    alert("เพิ่มรายชื่อเพื่อนก่อนครับ");
+// Logic Functions
+function updateTurnUI() {
+  if (myState.index === -1) {
+    const foundIdx = gameState.players.findIndex((p) => p.id === socket.id);
+    if (foundIdx !== -1) myState.index = foundIdx;
   }
-};
-
-// ... (Helper Functions อื่นๆ เหมือนเดิม) ...
+  const currentPlayer = gameState.players[gameState.turnIndex];
+  if (currentPlayer) {
+    document.getElementById(
+      "current-turn-name"
+    ).innerText = `ตาของ: ${currentPlayer.name}`;
+    if (gameState.turnIndex === myState.index) {
+      currentCardAction = "draw";
+      updateMainBtn("จั่วไพ่", true);
+    } else {
+      updateMainBtn(`รอ ${currentPlayer.name}`, false);
+    }
+  }
+}
+function updateMainBtn(text, active, action) {
+  if (!mainBtn) return;
+  mainBtn.innerText = text;
+  if (active) {
+    mainBtn.className = "my-turn";
+    mainBtn.style.pointerEvents = "auto";
+    if (action) currentCardAction = action;
+  } else {
+    mainBtn.className = "disabled";
+    mainBtn.style.pointerEvents = "none";
+  }
+}
 function displayCard(data) {
   if (cardImg) {
     cardImg.style.transform = "rotateY(90deg)";
@@ -282,24 +174,40 @@ function displayCard(data) {
     altBtn.classList.add("hidden");
   }
 }
-function updateMainBtn(text, active, action) {
-  if (!mainBtn) return;
-  mainBtn.innerText = text;
-  if (active) {
-    mainBtn.className = "my-turn";
-    mainBtn.style.pointerEvents = "auto";
-    currentCardAction = action;
-  } else {
-    mainBtn.className = "disabled";
-    mainBtn.style.pointerEvents = "none";
-  }
-}
 function updateMainBtnAsNext() {
   updateMainBtn("จบเทิร์น\nถัดไป", true, "next");
 }
 function updateMainBtnAsWait(name) {
   updateMainBtn(`ตาของ\n${name}`, false, "");
 }
+
+window.setupGame = function () {
+  const input = document.getElementById("new-player-name");
+  if (input.value.trim() !== "") addNameToList();
+  if (setupNames.length > 0) {
+    localStorage.removeItem("myPlayerIndex");
+    socket.emit("updatePlayersList", setupNames); // ใช้ updatePlayersList ตาม Server เดิม
+    // แต่ต้องเพิ่ม emit createRoom ด้วยถ้าใช้ Logic ใหม่?
+    // อ๋อ Server ใช้ updatePlayersList ในการเริ่มห้องแรก
+    // แต่เดี๋ยวก่อน! Server Ver 6.0 ใช้ 'createRoom' นี่นา!
+    // งั้นต้องแก้บรรทัดนี้ให้ตรงกัน
+    socket.emit("createRoom", setupNames);
+    switchScreen("lobby");
+  } else {
+    alert("เพิ่มรายชื่อเพื่อนก่อนครับ");
+  }
+};
+
+window.goToSetup = () => switchScreen("setup");
+window.joinRoom = () => switchScreen("lobby");
+window.backToLanding = () => switchScreen("landing");
+window.startGame = () => {
+  if (socket.connected) {
+    socket.emit("startGame");
+  } else {
+    alert("Connection Lost!");
+  }
+};
 function handleEnter(e) {
   if (e.key === "Enter") addNameToList();
 }
@@ -325,13 +233,6 @@ function renderSetupList() {
       }. ${n}</span><button class="btn-del" onclick="removeName(${i})">X</button></div>`)
   );
 }
-window.startGame = () => {
-  if (socket.connected) {
-    socket.emit("startGame");
-  } else {
-    alert("Connection Lost!");
-  }
-};
 function renderLobby() {
   const list = document.getElementById("lobby-list");
   list.innerHTML = "";
@@ -455,6 +356,121 @@ function handleCardEffect(data) {
     }, 1000);
   }
 }
+
+// ... (Helper Functions, ShowOverlay, etc. same as before) ...
+socket.on("showPunishment", (data) => {
+  let html = "";
+  const iAmVictim = data.victims.names.includes(myState.name);
+  const isDrawer = gameState.turnIndex === myState.index;
+  const isGroupBadLuck =
+    data.victims.names.length > 1 && data.victims.isBuddyEffect;
+  let title = "บทลงโทษ";
+  let msgColor = "white";
+  let actionText = "ดื่มซะ! 🍺";
+  if (data.cause.includes("แป้ง")) {
+    actionText = "ทาแป้งซะ! 🤡";
+    msgColor = "#fab1a0";
+  }
+  if (isGroupBadLuck) title = "💀 ซวยหมู่! (แก๊งบัดดี้)";
+  let btnHtml = `<button class="btn-primary" style="margin-top:20px;" onclick="closeOverlay()">ปิด</button>`;
+  if (isDrawer)
+    btnHtml = `<button class="btn-primary" style="margin-top:20px; background:#00b894;" onclick="endTurnAndClose()">✅ เรียบร้อย / จบเทิร์น</button>`;
+  html = `<h1 style="color:#ff7675; font-size:2.5rem;">${title}</h1><h3 style="color:#aaa; margin:10px 0;">${
+    data.cause
+  }</h3><div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px;"><h2 style="color:#ffeaa7;">รายชื่อผู้โชคร้าย</h2><p style="font-size:1.2rem; line-height:1.5;">${data.victims.names.join(
+    "<br>"
+  )}</p></div><h1 style="font-size:3rem; margin-top:15px; color:${msgColor};">${actionText}</h1>${btnHtml}`;
+  if (iAmVictim) {
+    document.body.classList.add("alert-mode");
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    playSound("sound-alert");
+  }
+  showOverlay("Alert", html);
+  setTimeout(() => document.body.classList.remove("alert-mode"), 3000);
+});
+socket.on("minigameSelected", (data) => {
+  let html = `<h1 style="color:#00b894; font-size:2rem;">🎮 ${data.gameName}</h1><p style="font-size:1.1rem; margin:15px 0;">เล่นกันเองในวง... ใครแพ้?</p>`;
+  showOverlay("Minigame", html);
+  if (gameState.turnIndex === myState.index) {
+    updateMainBtn("เลือกคนแพ้", true, "pick_loser");
+  }
+});
+socket.on("duelStarted", (data) => {
+  closeOverlay();
+  let html = `<h1 style="color:#fab1a0;">⚔️ ดวลเดือด!</h1><h2 style="font-size:2rem; margin:10px 0;">${data.challenger}<br>VS<br>${data.target}</h2><p>แข่งมินิเกมกันเดี๋ยวนี้!</p>`;
+  if (gameState.turnIndex === myState.index) {
+    html += `<hr style="border-color:#555; margin:15px 0;"><p>ผลเป็นยังไง?</p><button class="btn-primary" style="background:#00b894; margin-bottom:10px;" onclick="socket.emit('resolveDuel', {winnerIndex: myState.index, loserIndex: ${gameState.players.findIndex(
+      (p) => p.name === data.target
+    )}})">😎 ฉันชนะ!</button><button class="btn-primary" style="background:#d63031;" onclick="socket.emit('resolveDuel', {winnerIndex: ${gameState.players.findIndex(
+      (p) => p.name === data.target
+    )}, loserIndex: myState.index})">😭 ฉันแพ้...</button>`;
+  } else {
+    html += `<p style="color:#aaa;">(รอเพื่อนแข่งกัน...)</p>`;
+  }
+  showOverlay("Duel", html);
+});
+socket.on("duelResult", (data) => {
+  closeOverlay();
+  let emotion = "";
+  if (data.winner === myState.name) {
+    emotion = "เย้! คุณชนะ 🎉";
+    playSound("sound-win");
+    fireConfetti();
+  } else if (data.loser === myState.name) {
+    emotion = "แง! คุณแพ้ (ยินดีต้อนรับสู่แก๊งบัดดี้) 😭";
+    document.body.classList.add("alert-mode");
+    setTimeout(() => document.body.classList.remove("alert-mode"), 2000);
+  } else {
+    emotion = `${data.winner} ชนะ!`;
+  }
+  let html = `<h1 style="color:#55efc4;">${emotion}</h1><p style="font-size:1.2rem;">${data.message}</p>`;
+  showOverlay("Result", html);
+  setTimeout(closeOverlay, 3000);
+  renderInGameList(data.statusHolders);
+});
+socket.on("bombStarted", (data) => {
+  document.getElementById("bomb-overlay").classList.remove("hidden");
+  updateBombUI(data.holderIndex);
+});
+socket.on("bombUpdate", (data) => {
+  updateBombUI(data.holderIndex);
+});
+socket.on("bombExploded", (data) => {
+  document.getElementById("bomb-overlay").classList.add("hidden");
+  playSound("sound-alert");
+});
+function updateBombUI(holderIndex) {
+  const holderName = gameState.players[holderIndex].name;
+  document.getElementById(
+    "bomb-status"
+  ).innerText = `ระเบิดอยู่ที่: ${holderName}`;
+  const btn = document.getElementById("pass-bomb-btn");
+  if (holderIndex === myState.index) {
+    document.body.classList.add("alert-mode");
+    btn.classList.remove("hidden");
+  } else {
+    document.body.classList.remove("alert-mode");
+    btn.classList.add("hidden");
+  }
+}
+window.passBomb = () => {
+  socket.emit("passBomb");
+};
+window.forceResetGame = () => {
+  let content = `<h2 style="color:#ff7675; font-size:1.5rem;">⚠️ อันตราย! ⚠️</h2><p style="font-size:1.1rem; margin:15px 0;">คุณกำลังจะล้างห้องและเตะทุกคนออก<br>เพื่อเริ่มเกมใหม่ทั้งหมด</p><div style="margin-top:20px; display:flex; flex-direction:column; gap:10px;"><button class="btn-primary" style="background:#d63031; border:2px solid white;" onclick="confirmReset()">✅ ยืนยัน ล้างห้องเดี๋ยวนี้!</button><button class="btn-primary" style="background:#636e72; border:1px solid #999;" onclick="closeOverlay()">❌ ยกเลิก</button></div>`;
+  showOverlay("ยืนยันการล้างห้อง?", content);
+};
+window.confirmReset = () => {
+  closeOverlay();
+  socket.emit("forceReset");
+};
+window.goBackToSetup = () => {
+  if (
+    confirm("ต้องการกลับไปแก้ไขรายชื่อผู้เล่น? (สถานะความพร้อมจะถูกรีเซ็ต)")
+  ) {
+    socket.emit("hostBackToSetup");
+  }
+};
 function showMultiPlayerSelector(count) {
   let html = `<p style="color:#aaa;">คุณซวยแล้ว! หาเพื่อนซวยด้วยอีก ${count} คน</p><form id="multi-select-form">`;
   gameState.players.forEach((p, idx) => {
@@ -576,21 +592,6 @@ window.sendDuelResult = (iWon) => {
 window.kickPlayer = (name) => {
   if (confirm(`จะลบ ${name} ออกจากเกมจริงไหม?`))
     alert("ตอนนี้ให้ใช้วิธีกดปุ่ม ⬅️ กลับไปแก้รายชื่อ แทนนะครับ");
-};
-window.goBackToSetup = () => {
-  if (
-    confirm("ต้องการกลับไปแก้ไขรายชื่อผู้เล่น? (สถานะความพร้อมจะถูกรีเซ็ต)")
-  ) {
-    socket.emit("hostBackToSetup");
-  }
-};
-window.forceResetGame = () => {
-  let content = `<h2 style="color:#ff7675; font-size:1.5rem;">⚠️ อันตราย! ⚠️</h2><p style="font-size:1.1rem; margin:15px 0;">คุณกำลังจะล้างห้องและเตะทุกคนออก<br>เพื่อเริ่มเกมใหม่ทั้งหมด</p><div style="margin-top:20px; display:flex; flex-direction:column; gap:10px;"><button class="btn-primary" style="background:#d63031; border:2px solid white;" onclick="confirmReset()">✅ ยืนยัน ล้างห้องเดี๋ยวนี้!</button><button class="btn-primary" style="background:#636e72; border:1px solid #999;" onclick="closeOverlay()">❌ ยกเลิก</button></div>`;
-  showOverlay("ยืนยันการล้างห้อง?", content);
-};
-window.confirmReset = () => {
-  closeOverlay();
-  socket.emit("forceReset");
 };
 window.toggleSettings = () => {
   if (myState.isHost && confirm("กลับไปหน้าตั้งค่า? (เกมจะหยุด)"))
