@@ -6,24 +6,14 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-
     <title>DD GAMECARD</title>
-
-    <link rel="manifest" href="manifest.json" />
-
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="DD Card" />
-    <link rel="apple-touch-icon" href="assets/icon.png" />
-
     <link
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
   </head>
   <body>
     <button id="emergency-btn" onclick="forceResetGame()">⚠️ Reset</button>
@@ -42,8 +32,61 @@
     </div>
 
     <div id="app">
-      <div id="setup-screen" class="screen">
-        <h1 class="logo-text">🍺 DD GAMECARD</h1>
+      <div id="landing-screen" class="screen">
+        <div style="text-align: center; margin-top: 30px">
+          <h1 class="logo-text" style="font-size: 2.5rem">
+            🍺 DD<br />GAMECARD
+          </h1>
+          <img
+            src="assets/icon.png"
+            style="
+              width: 150px;
+              height: 150px;
+              border-radius: 20px;
+              margin: 20px 0;
+              box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+            "
+          />
+        </div>
+
+        <div style="width: 100%; margin-top: auto; padding-bottom: 20px">
+          <div id="create-room-area">
+            <button
+              onclick="goToSetup()"
+              class="btn-primary"
+              style="background: #00b894; font-size: 1.5rem; padding: 20px"
+            >
+              ➕ สร้างวงเหล้า
+            </button>
+            <p style="color: #aaa; text-align: center; margin-top: 10px">
+              (กดปุ่มนี้เพื่อเป็น Host)
+            </p>
+          </div>
+
+          <div id="join-room-area" class="hidden">
+            <p
+              style="
+                color: #fdcb6e;
+                text-align: center;
+                font-size: 1.1rem;
+                margin-bottom: 10px;
+              "
+            >
+              มีวงกำลังเปิดอยู่!
+            </p>
+            <button
+              onclick="joinRoom()"
+              class="btn-primary"
+              style="background: #0984e3; border: 2px solid #74b9ff"
+            >
+              👉 เข้าร่วมวงของ <span id="host-name-display">...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="setup-screen" class="screen hidden">
+        <h1 class="logo-text">ตั้งค่าวงเหล้า</h1>
         <div class="input-group">
           <input
             type="text"
@@ -60,11 +103,18 @@
           <div id="setup-list"></div>
         </div>
         <button
-          onclick="setupGame()"
+          onclick="submitSetup()"
           class="btn-primary"
           style="margin-top: auto"
         >
           ยืนยัน / สร้างห้อง
+        </button>
+        <button
+          onclick="backToLanding()"
+          class="btn-secondary"
+          style="margin-top: 10px"
+        >
+          ยกเลิก
         </button>
       </div>
 
@@ -107,7 +157,7 @@
             <div id="current-turn-name">ตาของ...</div>
           </div>
           <div id="deck-count-box">
-            <span id="deck-count">ไพ่เหลือ: 52</span>
+            <span id="deck-count">52 ใบ</span>
           </div>
         </div>
 
