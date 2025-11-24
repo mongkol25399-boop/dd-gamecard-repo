@@ -8,7 +8,7 @@
     />
     <title>DD GAMECARD</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;700;900&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -33,32 +33,73 @@
 
     <div id="app">
       <div id="landing-screen" class="screen">
-        <div style="text-align: center; margin-top: 30px">
-          <h1 class="logo-text" style="font-size: 2.5rem">
-            🍺 DD<br />GAMECARD
+        <div style="text-align: center; margin-top: 40px; width: 100%">
+          <h1
+            style="
+              font-family: 'Kanit', sans-serif;
+              font-weight: 900;
+              line-height: 1;
+              margin-bottom: 10px;
+              text-transform: uppercase;
+            "
+          >
+            <span
+              style="
+                font-size: 3rem;
+                color: white;
+                text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+                display: block;
+              "
+              >DRINK DRUNK</span
+            >
+            <span
+              style="
+                font-size: 2.5rem;
+                color: #fdcb6e;
+                text-shadow: 0 0 15px rgba(253, 203, 110, 0.5);
+                letter-spacing: 3px;
+              "
+              >GAMECARD</span
+            >
           </h1>
+
           <img
             src="assets/icon.png"
             style="
-              width: 150px;
-              height: 150px;
+              width: 85%;
+              height: auto;
+              max-width: 400px;
               border-radius: 20px;
-              margin: 20px 0;
-              box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+              margin: 30px 0;
+              box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+              object-fit: contain;
             "
           />
         </div>
 
-        <div style="width: 100%; margin-top: auto; padding-bottom: 20px">
+        <div style="width: 100%; margin-top: auto; padding-bottom: 30px">
           <div id="create-room-area">
             <button
               onclick="goToSetup()"
               class="btn-primary"
-              style="background: #00b894; font-size: 1.5rem; padding: 20px"
+              style="
+                background: linear-gradient(45deg, #00b894, #0984e3);
+                font-size: 1.5rem;
+                padding: 20px;
+                border: none;
+                box-shadow: 0 0 25px rgba(0, 184, 148, 0.4);
+              "
             >
               ➕ สร้างวงเหล้า
             </button>
-            <p style="color: #aaa; text-align: center; margin-top: 10px">
+            <p
+              style="
+                color: #aaa;
+                text-align: center;
+                margin-top: 15px;
+                font-size: 0.9rem;
+              "
+            >
               (กดปุ่มนี้เพื่อเป็น Host)
             </p>
           </div>
@@ -68,25 +109,36 @@
               style="
                 color: #fdcb6e;
                 text-align: center;
-                font-size: 1.1rem;
-                margin-bottom: 10px;
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+                font-weight: bold;
               "
             >
-              มีวงกำลังเปิดอยู่!
+              กำลังมีการเล่นอยู่!
             </p>
             <button
               onclick="joinRoom()"
               class="btn-primary"
-              style="background: #0984e3; border: 2px solid #74b9ff"
+              style="
+                background: #0984e3;
+                border: 2px solid #74b9ff;
+                padding: 20px;
+                font-size: 1.2rem;
+              "
             >
-              👉 เข้าร่วมวงของ <span id="host-name-display">...</span>
+              👉 เข้าร่วมวงของ
+              <span
+                id="host-name-display"
+                style="color: #fff; font-weight: bold"
+                >...</span
+              >
             </button>
           </div>
         </div>
       </div>
 
       <div id="setup-screen" class="screen hidden">
-        <h1 class="logo-text">ตั้งค่าวงเหล้า</h1>
+        <h1 class="logo-text">🍺 DD GAMECARD</h1>
         <div class="input-group">
           <input
             type="text"
@@ -103,18 +155,11 @@
           <div id="setup-list"></div>
         </div>
         <button
-          onclick="submitSetup()"
+          onclick="setupGame()"
           class="btn-primary"
           style="margin-top: auto"
         >
           ยืนยัน / สร้างห้อง
-        </button>
-        <button
-          onclick="backToLanding()"
-          class="btn-secondary"
-          style="margin-top: 10px"
-        >
-          ยกเลิก
         </button>
       </div>
 
