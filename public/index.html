@@ -54,14 +54,12 @@
               >GAMECARD</span
             >
           </h1>
-
           <img
             src="assets/back.png"
             class="landing-icon"
             style="box-shadow: 0 0 40px rgba(253, 203, 110, 0.3)"
           />
         </div>
-
         <div class="landing-bottom">
           <div id="create-room-area">
             <button
@@ -122,10 +120,7 @@
       </div>
 
       <div id="setup-screen" class="screen hidden">
-        <div class="setup-header">
-          <h1 class="logo-text">🍺 ตั้งค่าวงเหล้า</h1>
-        </div>
-
+        <h1 class="logo-text">🍺 ตั้งค่าวงเหล้า</h1>
         <div class="input-group">
           <input
             type="text"
@@ -135,14 +130,12 @@
           />
           <button onclick="addNameToList()" class="btn-add">+</button>
         </div>
-
         <div class="setup-list-container">
           <p style="color: #aaa; font-size: 0.8rem; margin-bottom: 5px">
             รายชื่อผู้เล่น
           </p>
           <div id="setup-list"></div>
         </div>
-
         <button onclick="setupGame()" class="btn-confirm">
           ยืนยัน / สร้างห้อง
         </button>
@@ -158,22 +151,23 @@
       <div id="lobby-screen" class="screen hidden">
         <h1>เลือกชื่อตัวเอง</h1>
         <div id="lobby-list"></div>
-        <div
-          id="host-controls"
-          class="hidden"
-          style="width: 100%; display: flex; flex-direction: column; gap: 10px"
-        >
-          <p style="color: #aaa; font-size: 0.9rem; margin-top: 5px">
-            รอเพื่อนเลือกครบทุกคน...
-          </p>
+
+        <div style="width: 100%; margin-bottom: 10px">
           <button
             id="start-btn"
             onclick="startGame()"
             class="btn-start"
             disabled
           >
-            เริ่มเกม
+            รอเพื่อนพร้อม...
           </button>
+        </div>
+
+        <div
+          id="host-controls"
+          class="hidden"
+          style="width: 100%; display: flex; flex-direction: column; gap: 10px"
+        >
           <button
             onclick="goBackToSetup()"
             class="btn-secondary"
@@ -197,14 +191,12 @@
             <span id="deck-count">52 ใบ</span>
           </div>
         </div>
-
         <div id="card-area">
           <div id="card-container">
             <img id="main-card-img" src="assets/back.png" alt="Card" />
             <div id="card-message" class="hidden"></div>
           </div>
         </div>
-
         <div id="bottom-split">
           <div id="player-list-container">
             <div id="in-game-list"></div>
